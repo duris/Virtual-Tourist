@@ -1,19 +1,19 @@
 //
-//  Pin.swift
+//  Location.swift
 //  Virtual Tourist
 //
-//  Created by Ross Duris on 11/22/15.
+//  Created by Ross Duris on 11/23/15.
 //  Copyright © 2015 duris.io. All rights reserved.
 //
 
 import CoreData
 
-class Pin: NSManagedObject {
+class Location : NSManagedObject {
     
-    @NSManaged var uuid: String
     @NSManaged var latitude: Double
     @NSManaged var longitude: Double
-    @NSManaged var photos: [Photo]
+    @NSManaged var latitudeDelta: Double
+    @NSManaged var longitudeDelta: Double
     
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
@@ -22,18 +22,13 @@ class Pin: NSManagedObject {
     init(dictionary: [String : AnyObject], context: NSManagedObjectContext) {
         
         // Core Data
-        let entity =  NSEntityDescription.entityForName("Pin", inManagedObjectContext: context)!
+        let entity =  NSEntityDescription.entityForName("Location", inManagedObjectContext: context)!
         super.init(entity: entity, insertIntoManagedObjectContext: context)
         
         // Dictionary
-        uuid = dictionary["uuid"] as! String
         latitude = dictionary["latitude"] as! Double
         longitude = dictionary["longitude"] as! Double
+        latitudeDelta = dictionary["latitudeDelta"] as! Double
+        longitudeDelta = dictionary["longitudeDelta"] as! Double
     }
-    
-
-    
 }
-
-
-

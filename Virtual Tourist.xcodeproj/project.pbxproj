@@ -19,6 +19,7 @@
 		0D6EC5C91C02102A00B633DF /* CoreDataStackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6EC5C81C02102A00B633DF /* CoreDataStackManager.swift */; };
 		0D6EC5D11C022F6F00B633DF /* TravelLocationsMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6EC5D01C022F6F00B633DF /* TravelLocationsMapViewController.swift */; };
 		0D6EC5D31C022FC900B633DF /* PhotoAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6EC5D21C022FC900B633DF /* PhotoAlbumViewController.swift */; };
+		0D6EC5D51C0363C000B633DF /* Location.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6EC5D41C0363C000B633DF /* Location.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 		0D6EC5C81C02102A00B633DF /* CoreDataStackManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStackManager.swift; sourceTree = "<group>"; };
 		0D6EC5D01C022F6F00B633DF /* TravelLocationsMapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TravelLocationsMapViewController.swift; sourceTree = "<group>"; };
 		0D6EC5D21C022FC900B633DF /* PhotoAlbumViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumViewController.swift; sourceTree = "<group>"; };
+		0D6EC5D41C0363C000B633DF /* Location.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Location.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,10 +113,11 @@
 				0D6EC5971C020AF400B633DF /* Main.storyboard */,
 				0D6EC5D01C022F6F00B633DF /* TravelLocationsMapViewController.swift */,
 				0D6EC5D21C022FC900B633DF /* PhotoAlbumViewController.swift */,
-				0D6EC59D1C020AF400B633DF /* Assets.xcassets */,
 				0D6EC59F1C020AF400B633DF /* LaunchScreen.storyboard */,
 				0D6EC5A21C020AF400B633DF /* Info.plist */,
 				0D6EC59A1C020AF400B633DF /* Virtual_Tourist.xcdatamodeld */,
+				0D6EC59D1C020AF400B633DF /* Assets.xcassets */,
+				0D6EC5D41C0363C000B633DF /* Location.swift */,
 				0D6EC5C41C020D0C00B633DF /* Photo.swift */,
 				0D6EC5C61C020D1400B633DF /* Pin.swift */,
 				0D6EC5C81C02102A00B633DF /* CoreDataStackManager.swift */,
@@ -273,6 +276,7 @@
 			files = (
 				0D6EC5C71C020D1400B633DF /* Pin.swift in Sources */,
 				0D6EC5D31C022FC900B633DF /* PhotoAlbumViewController.swift in Sources */,
+				0D6EC5D51C0363C000B633DF /* Location.swift in Sources */,
 				0D6EC5C51C020D0C00B633DF /* Photo.swift in Sources */,
 				0D6EC5D11C022F6F00B633DF /* TravelLocationsMapViewController.swift in Sources */,
 				0D6EC59C1C020AF400B633DF /* Virtual_Tourist.xcdatamodeld in Sources */,

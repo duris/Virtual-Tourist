@@ -9,11 +9,16 @@
 import UIKit
 
 class PhotoAlbumViewController: UIViewController {
+    
+    var pin: Pin!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print(pin.latitude)
+        print(pin.longitude)
+        print(pin.uuid)
 
-        // Do any additional setup after loading the view.
     }
 
     override func didReceiveMemoryWarning() {
