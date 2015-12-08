@@ -23,10 +23,14 @@
                                 <gestureRecognizers/>
                             </mapView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="m0j-5G-PAc">
-                                <rect key="frame" x="0.0" y="533" width="600" height="67"/>
+                                <rect key="frame" x="0.0" y="546" width="600" height="54"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Tap Pins to Delete" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UQ6-MI-g52">
-                                        <rect key="frame" x="204" y="18" width="192" height="32"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap Pins to Delete" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UQ6-MI-g52">
+                                        <rect key="frame" x="204" y="14" width="192" height="32"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="192" id="A1m-qy-kyc"/>
+                                            <constraint firstAttribute="height" constant="32" id="FW3-wV-55v"/>
+                                        </constraints>
                                         <fontDescription key="fontDescription" name="AvenirNext-Regular" family="Avenir Next" pointSize="23"/>
                                         <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
@@ -34,8 +38,8 @@
                                 </subviews>
                                 <color key="backgroundColor" red="1" green="0.028928409815473177" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
-                                    <constraint firstItem="UQ6-MI-g52" firstAttribute="top" secondItem="m0j-5G-PAc" secondAttribute="top" constant="18" id="9FH-Y1-CjJ"/>
-                                    <constraint firstAttribute="bottom" secondItem="UQ6-MI-g52" secondAttribute="bottom" constant="17" id="Ezm-G9-4rc"/>
+                                    <constraint firstItem="UQ6-MI-g52" firstAttribute="top" secondItem="m0j-5G-PAc" secondAttribute="top" constant="14" id="9FH-Y1-CjJ"/>
+                                    <constraint firstAttribute="bottom" secondItem="UQ6-MI-g52" secondAttribute="bottom" constant="8" id="Ezm-G9-4rc"/>
                                     <constraint firstItem="UQ6-MI-g52" firstAttribute="centerX" secondItem="m0j-5G-PAc" secondAttribute="centerX" id="kYN-49-tqY"/>
                                 </constraints>
                             </view>
@@ -80,9 +84,79 @@
                     <view key="view" contentMode="scaleToFill" id="vhB-V0-ENg">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="Oeg-ww-O0a">
+                                <rect key="frame" x="0.0" y="142" width="600" height="413"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="rse-R4-zn6">
+                                    <size key="itemSize" width="75" height="75"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                </collectionViewFlowLayout>
+                                <cells>
+                                    <collectionViewCell clipsSubviews="YES" contentMode="scaleToFill" reuseIdentifier="PhotoCell" id="Cy4-kP-6k3" customClass="PhotoCell" customModule="Virtual_Tourist" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="64" width="75" height="75"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                                            <rect key="frame" x="0.0" y="0.0" width="75" height="75"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="kEd-Qh-qDf">
+                                                    <rect key="frame" x="0.0" y="0.0" width="75" height="75"/>
+                                                </imageView>
+                                                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="CzF-Qj-1MF">
+                                                    <rect key="frame" x="19" y="19" width="37" height="37"/>
+                                                </activityIndicatorView>
+                                            </subviews>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </view>
+                                        <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstItem="CzF-Qj-1MF" firstAttribute="centerX" secondItem="Cy4-kP-6k3" secondAttribute="centerX" id="4O2-1g-o27"/>
+                                            <constraint firstAttribute="trailingMargin" secondItem="kEd-Qh-qDf" secondAttribute="trailing" constant="-8" id="Laf-K7-l0X"/>
+                                            <constraint firstAttribute="bottomMargin" secondItem="kEd-Qh-qDf" secondAttribute="bottom" constant="-8" id="XVv-77-X6f"/>
+                                            <constraint firstItem="kEd-Qh-qDf" firstAttribute="leading" secondItem="Cy4-kP-6k3" secondAttribute="leadingMargin" constant="-8" id="abb-Sn-BFK"/>
+                                            <constraint firstItem="kEd-Qh-qDf" firstAttribute="top" secondItem="Cy4-kP-6k3" secondAttribute="topMargin" constant="-8" id="o2q-gF-Q1o"/>
+                                            <constraint firstItem="CzF-Qj-1MF" firstAttribute="centerY" secondItem="Cy4-kP-6k3" secondAttribute="centerY" id="wYN-Jz-8N6"/>
+                                        </constraints>
+                                        <connections>
+                                            <outlet property="activityIndicator" destination="CzF-Qj-1MF" id="7vN-in-xft"/>
+                                            <outlet property="photoView" destination="kEd-Qh-qDf" id="q6s-hm-Oud"/>
+                                        </connections>
+                                    </collectionViewCell>
+                                </cells>
+                            </collectionView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Skp-Yx-hed">
+                                <rect key="frame" x="0.0" y="555" width="600" height="45"/>
+                                <color key="backgroundColor" red="0.93177496689999995" green="0.93177496689999995" blue="0.93177496689999995" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="New Collection"/>
+                            </button>
+                            <mapView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" mapType="standard" zoomEnabled="NO" scrollEnabled="NO" rotateEnabled="NO" pitchEnabled="NO" showsBuildings="NO" showsPointsOfInterest="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1PC-cq-Lqh">
+                                <rect key="frame" x="0.0" y="64" width="600" height="142"/>
+                            </mapView>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="Oeg-ww-O0a" firstAttribute="top" secondItem="1PC-cq-Lqh" secondAttribute="bottom" constant="-64" id="4GE-UP-ATT"/>
+                            <constraint firstItem="Ehw-qb-5nt" firstAttribute="top" secondItem="Oeg-ww-O0a" secondAttribute="bottom" constant="45" id="BJy-G4-YnA"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Oeg-ww-O0a" secondAttribute="trailing" constant="-20" id="FPA-1P-fF0"/>
+                            <constraint firstItem="Oeg-ww-O0a" firstAttribute="leading" secondItem="vhB-V0-ENg" secondAttribute="leadingMargin" constant="-20" id="HHB-Ol-SDI"/>
+                            <constraint firstItem="1PC-cq-Lqh" firstAttribute="top" secondItem="bam-sq-oLU" secondAttribute="bottom" id="I3x-Om-Ex7"/>
+                            <constraint firstItem="1PC-cq-Lqh" firstAttribute="leading" secondItem="vhB-V0-ENg" secondAttribute="leadingMargin" constant="-20" id="Mfx-ZA-xAa"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="1PC-cq-Lqh" secondAttribute="trailing" constant="-20" id="QWO-VW-pMV"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Skp-Yx-hed" secondAttribute="trailing" constant="-20" id="bqs-VP-7hy"/>
+                            <constraint firstItem="Oeg-ww-O0a" firstAttribute="top" secondItem="bam-sq-oLU" secondAttribute="bottom" constant="78" id="dqu-dQ-Ju6"/>
+                            <constraint firstItem="Skp-Yx-hed" firstAttribute="top" secondItem="Oeg-ww-O0a" secondAttribute="bottom" id="fNn-hL-OPK"/>
+                            <constraint firstItem="Skp-Yx-hed" firstAttribute="leading" secondItem="vhB-V0-ENg" secondAttribute="leadingMargin" constant="-20" id="jaw-hP-QL6"/>
+                            <constraint firstItem="Ehw-qb-5nt" firstAttribute="top" secondItem="Skp-Yx-hed" secondAttribute="bottom" id="oOP-yV-6UM"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="rSQ-4H-Dv9"/>
+                    <connections>
+                        <outlet property="collectionView" destination="Oeg-ww-O0a" id="E0b-rS-dKa"/>
+                        <outlet property="mapView" destination="1PC-cq-Lqh" id="0nJ-ad-Wig"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oq1-Dl-koZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

@@ -11,9 +11,20 @@ import CoreData
 
 class Photo : NSManagedObject {
     
-    @NSManaged var id: NSNumber
+
+    
     @NSManaged var imagePath: String
     @NSManaged var pin: Pin?
+        
+    var isDownloading = false
+    
+    var sharedContext: NSManagedObjectContext {
+        return CoreDataStackManager.sharedInstance().managedObjectContext
+    }
+    
+    func saveContext() {
+        CoreDataStackManager.sharedInstance().saveContext()
+    }
     
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
@@ -26,7 +37,26 @@ class Photo : NSManagedObject {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
         
         // Dictionary
-        id = dictionary["id"] as! Int
         imagePath = dictionary["imagePath"] as! String
+    }
+    
+ 
+    func deleteImage(path: String){
+        FlickrClient.Caches.imageCache.removeImage(path)
+    }
+    
+    func downloadImage(pin: Pin) {
+        FlickrClient.sharedInstance().downloadPhotoForPin(pin)
+    }
+    
+    
+    var image: UIImage? {
+        get {
+            return FlickrClient.Caches.imageCache.imageWithIdentifier(imagePath)
+        }
+        
+        set {
+            FlickrClient.Caches.imageCache.storeImage(image, withIdentifier: imagePath)
+        }
     }
 }
