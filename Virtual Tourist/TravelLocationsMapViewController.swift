@@ -15,14 +15,12 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var editButton: UIBarButtonItem!
     @IBOutlet weak var editView: UIView!
+    var longPress = UILongPressGestureRecognizer()
+    var coordinate = CLLocationCoordinate2D(latitude: 0.00, longitude: 0.00)
+    var locations = [Location]()
+    var activePin : Pin!
     var editMode = false
-    var dragPin: MKPointAnnotation!
-    var mapLocation: MapLocation!
-    
-    struct Caches {
-        static let imageCache = ImageCache()
-    }
-    
+
     
     // MARK: - Life Cycle
     
@@ -38,27 +36,17 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
         editButton.title = "Edit"
         editView.hidden = true
         
-
-        
         // Configure LongPress Gesture
-        let longPress = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
+        longPress = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
         longPress.delegate = self
-        longPress.numberOfTouchesRequired = 1
+        longPress.numberOfTapsRequired = 0
+        longPress.minimumPressDuration = 0.5
         mapView.addGestureRecognizer(longPress)
         
         //Fetch CoreData
         do {
             try fetchedResultsController.performFetch()
         } catch {
-        }
-        
-        fetchMapRegion() { (found, mapLocation) in
-            if found {
-                self.setMapRegion(mapLocation!)
-                self.mapLocation = mapLocation
-            }else {
-                self.creatMapRegin()
-            }
         }
 
         getPins()
@@ -88,6 +76,33 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
     }()
 
     
+    func fetchSelectedPin(view: MKAnnotationView) -> Pin {
+        
+        
+        let fetchSelectedPin: NSFetchedResultsController = {
+            let fetchRequest = NSFetchRequest(entityName: "Pin")
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "latitude", ascending: true)]
+            let uuid = (((view.annotation?.title)!)!)
+            let uuidPredicate = NSPredicate(format: "uuid = %@", "\(uuid)")
+            fetchRequest.predicate = uuidPredicate
+            let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest,
+                managedObjectContext: self.sharedContext,
+                sectionNameKeyPath: nil,
+                cacheName: nil)
+            
+            return fetchedResultsController
+        }()
+        
+        do {
+            try fetchSelectedPin.performFetch()
+        } catch {
+            print("Error fetching pin")
+        }
+        
+        
+        return (fetchSelectedPin.fetchedObjects?.first as? Pin)!
+    }
+
     
     
     // MARK: - Fetched Results Controller Delegate
@@ -135,7 +150,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
     
     func fetchedResultsChangeUpdate(pin: Pin) {
         print("Pin Updated")
-        saveContext()
     }
     
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
@@ -148,124 +162,106 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
         }
         for item in fetchedResultsController.fetchedObjects! {
             let pin = item as! Pin
-            mapView.addAnnotation(pin)
+            let annotation = MKPointAnnotation()
+            annotation.coordinate.latitude = pin.latitude
+            annotation.coordinate.longitude = pin.longitude
+            annotation.title = pin.uuid
+            
+            mapView.addAnnotation(annotation)
         }
     }
     
+    func getLocation() -> [Location] {
+        
+        // Create the Fetch Request
+        let fetchRequest = NSFetchRequest(entityName: "Location")
+        
+        // Execute the Fetch Request
+        do {
+            return try sharedContext.executeFetchRequest(fetchRequest) as! [Location]
+        } catch _ {
+            return [Location]()
+        }
+    }
+    
+//    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+//        let dictionary: [String : AnyObject] = [
+//            "latitude": mapView.region.center.latitude,
+//            "longitude": mapView.region.center.longitude,
+//            "latitudeDelta": mapView.region.span.latitudeDelta,
+//            "longitudeDelta": mapView.region.span.longitudeDelta
+//        ]
+//        
+//        print(mapView.region.span.longitudeDelta)
+//        
+//        
+//        
+//        let location = Location(dictionary: dictionary, context:  sharedContext)
+//        locations.removeAll()
+//        locations.append(location)
+//        print(locations.count)
+//        saveContext()
+//    }
+    
+    func mapView(mapView: MKMapView, didUpdateUserLocation userLocation: MKUserLocation) {
 
+    }
+    
     func addAnnotation(gestureRecognizer:UIGestureRecognizer){
-
+        if gestureRecognizer.state == UIGestureRecognizerState.Began {
             let touchPoint = gestureRecognizer.locationInView(mapView)
             let newCoordinates = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
-        
-        
-            if dragPin != nil {
-                dragPin.coordinate = newCoordinates
-            }
-        
-        
-            if gestureRecognizer.state == UIGestureRecognizerState.Began {
-                dragPin = MKPointAnnotation()
-                dragPin.coordinate = newCoordinates
-                
-                self.mapView.addAnnotation(dragPin)
-                
-            }else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
-                let touchPoint = gestureRecognizer.locationInView(mapView)
-                let coordinate = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
-                print(coordinate)
-                
-                let uuid = NSUUID().UUIDString
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = newCoordinates
+            let uuid = NSUUID().UUIDString
+            print(uuid)
+            annotation.title = uuid as String
 
-                let dictionary: [String : AnyObject] = [
-                    "id": uuid,
-                    "latitude": newCoordinates.latitude,
-                    "longitude": newCoordinates.longitude
-                ]
-                let pin = Pin(dictionary: dictionary, context: sharedContext)
-                self.mapView.addAnnotation(pin)
-                self.mapView.removeAnnotation(dragPin)
-                dragPin = nil
-                for _ in 1...FlickrClient.PHOTO_LIMIT {
-                    FlickrClient.sharedInstance().downloadPhotoForPin(pin)
-                }
-                
-            }
+            let dictionary: [String : AnyObject] = [
+                "uuid": uuid,
+                "latitude": annotation.coordinate.latitude,
+                "longitude": annotation.coordinate.longitude
+            ]
+            
+            let pin = Pin(dictionary: dictionary, context: sharedContext)
+            
+            self.mapView.addAnnotation(annotation)
+        }
     }
     
-    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
-        let photo = fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
-//        if photo.downloadStatus == .Loaded {
-//            photo.delete()
+    func mapView(mapView: MKMapView, annotationView view: MKAnnotationView, didChangeDragState newState: MKAnnotationViewDragState, fromOldState oldState: MKAnnotationViewDragState) {
+        if newState == MKAnnotationViewDragState.Ending {
+            let pin = fetchSelectedPin(view)
+            pin.latitude = (view.annotation?.coordinate.latitude)!
+            pin.longitude = (view.annotation?.coordinate.longitude)!
+
+            saveContext()
+        }
+    }
+
+
+    
+    func mapView(mapView: MKMapView, didAddAnnotationViews views: [MKAnnotationView]) {
+    }
+    
+//    func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
+//        
+//        
+// 
+//        if editMode{
+//            let pin = fetchSelectedPin(view)
+//            mapView.removeAnnotation(view.annotation!)
+//            sharedContext.deleteObject(pin)
+//        } else {
+//            let vc = self.storyboard?.instantiateViewControllerWithIdentifier("PhotoAlbumViewController") as! PhotoAlbumViewController
+//            print(view.annotation)
+//            let pin = fetchSelectedPin(view)
+//            vc.pin = pin
+//            self.navigationController?.pushViewController(vc, animated: true)
 //        }
-    }
+//    }
 
     
-    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        fetchMapRegion() { (found, mapLocation) in
-            if found {
-                self.updateMapRegion(mapLocation!)
-            }
-        }
-    }
-
-
-    
-    func fetchMapRegion(completionHandler:(found: Bool, mapLocation: MapLocation?) -> Void) {
-        let mapLocationFetch = NSFetchRequest(entityName: "MapLocation")
-        
-        do {
-            let mapLocation = try self.sharedContext.executeFetchRequest(mapLocationFetch) as! [MapLocation]
-            
-            if mapLocation.isEmpty {
-                completionHandler(found: false, mapLocation: nil)
-            } else {
-                completionHandler(found: true, mapLocation: mapLocation.first)
-            }
-            
-        } catch {
-            fatalError("Failed to fetch map location: \(error)")
-        }
-
-    }
-    
-    func creatMapRegin(){
-        let region = self.mapView.region
-        let dictionary = [
-            "latitude": region.center.latitude,
-            "longitude": region.center.longitude,
-            "latitudeDelta":   region.span.latitudeDelta,
-            "longitudeDelta":   region.span.longitudeDelta
-        ]
-        let location = MapLocation(dictionary: dictionary, context: sharedContext)
-        self.mapLocation = location
-        saveContext()
-    }
-    
-    func updateMapRegion(mapLocation: MapLocation) {
-        let region = self.mapView.region
-        mapLocation.latitude = region.center.latitude
-        mapLocation.longitude = region.center.longitude
-        mapLocation.latitudeDelta = region.span.latitudeDelta
-        mapLocation.longitudeDelta = region.span.longitudeDelta
-        saveContext()
-    }
-    
-    func setMapRegion(mapLocation: MapLocation){
-        let region = MKCoordinateRegionMake(
-            CLLocationCoordinate2DMake(
-                mapLocation.latitude as Double,
-                mapLocation.longitude as Double
-            ),
-            MKCoordinateSpanMake(
-                mapLocation.latitudeDelta as Double,
-                mapLocation.longitudeDelta as Double
-            )
-        )
-        self.mapView.setRegion(region, animated: true)
-    }
-    
-
     @IBAction func didPressEdit(){
         if editMode{
             editButton.title = "Edit"
@@ -290,78 +286,48 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
             let reuseId = "pin"
             
             var annotationView = mapView.dequeueReusableAnnotationViewWithIdentifier(reuseId) as? MKPinAnnotationView
-            if annotation is Pin{
-                annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
-                annotationView!.canShowCallout = false
-                annotationView!.animatesDrop = false
-                annotationView!.draggable = true
-                annotationView!.pinTintColor = UIColor.redColor()
-            }else {
+            if annotationView == nil {
                 annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
                 annotationView!.canShowCallout = false
                 annotationView!.animatesDrop = true
                 annotationView!.draggable = true
-                annotationView!.pinTintColor = UIColor.purpleColor()
-
+                annotationView!.pinTintColor = UIColor.redColor()
+            
+                
+                // Configure singleTap Gesture
+                let singleTap = UITapGestureRecognizer(target: self, action: "annotationTap:")
+                singleTap.delegate = self
+                singleTap.numberOfTapsRequired = 1
+                annotationView!.addGestureRecognizer(singleTap)
+                
             }
+            else {
+                print("error")
+                annotationView!.annotation = annotation
+            }
+
+            
             return annotationView
     }
     
-    func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
-
+    func annotationTap(sender: UITapGestureRecognizer) {
+        let view = sender.view as! MKPinAnnotationView
         if editMode{
-            let pin = view.annotation as! Pin
-            //mapView.removeAnnotation(view.annotation!)
-            //deletePhotos(pin.photos)
+            let pin = fetchSelectedPin(view)
+            mapView.removeAnnotation(view.annotation!)
             sharedContext.deleteObject(pin)
-            saveContext()
         } else {
             let vc = self.storyboard?.instantiateViewControllerWithIdentifier("PhotoAlbumViewController") as! PhotoAlbumViewController
-            let pin = view.annotation as! Pin
-            updatePhotos(pin)
-            for photo in pin.photos {
-                print(photo.isDownloading)
-            }
+            let pin = fetchSelectedPin(view)
             vc.pin = pin
             self.navigationController?.pushViewController(vc, animated: true)
         }
     }
     
-    func updatePhotos(pin: Pin) {
-        
-        for photo in pin.photos {
-            if photo.image == nil && photo.isDownloading == false{
-                photo.isDownloading = true
-                FlickrClient.sharedInstance().searchPhotosNearPin(pin) { (imageData, success, errorString) in
-                    if success {
-                        if let data = imageData {
-                            let image = UIImage(data: data)
-                            print(image!)
-                            photo.image = image!
-                            FlickrClient.Caches.imageCache.storeImage(image, withIdentifier: photo.imagePath)
-                            photo.isDownloading = false
-                        
-                            NSNotificationCenter.defaultCenter().postNotificationName("ImageLoadedNotification", object: self)
-                        }
-                        
-                        self.saveContext()
-                        
-                    } else {
-                        print("nothing")
-                    }
-                }
-            }
-        }
+    func annotationHold() {
+        print("annotation held")
+    }
 
-    }
-    
-    func deletePhotos(photos:[Photo]) {
-        for photo in photos {
-            print("deleting photo")
-            FlickrClient.Caches.imageCache.removeImage(photo.imagePath)
-            sharedContext.deleteObject(photo)
-        }
-    }
 
 
 }
