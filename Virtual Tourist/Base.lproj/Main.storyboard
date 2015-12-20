@@ -131,6 +131,9 @@
                                 <rect key="frame" x="0.0" y="555" width="600" height="45"/>
                                 <color key="backgroundColor" red="0.93177496689999995" green="0.93177496689999995" blue="0.93177496689999995" alpha="1" colorSpace="calibratedRGB"/>
                                 <state key="normal" title="New Collection"/>
+                                <connections>
+                                    <action selector="newCollection" destination="l9a-wU-a34" eventType="touchUpInside" id="P7n-ek-wTd"/>
+                                </connections>
                             </button>
                             <mapView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" mapType="standard" zoomEnabled="NO" scrollEnabled="NO" rotateEnabled="NO" pitchEnabled="NO" showsBuildings="NO" showsPointsOfInterest="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1PC-cq-Lqh">
                                 <rect key="frame" x="0.0" y="64" width="600" height="142"/>

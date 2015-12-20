@@ -35,5 +35,7 @@ class MapLocation: NSManagedObject {
         longitude = dictionary["longitude"] as! Double
         latitude = dictionary["latitudeDelta"] as! Double
         longitude = dictionary["longitudeDelta"] as! Double
-    }    
+    }
+    
+    
 }

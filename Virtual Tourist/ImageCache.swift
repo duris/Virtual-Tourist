@@ -61,6 +61,7 @@ class ImageCache {
     }
     
     func removeImage(identifier: String) {
+        print("removing image")
         storeImage(nil, withIdentifier: identifier)
     }
     

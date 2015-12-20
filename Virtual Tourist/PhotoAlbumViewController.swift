@@ -30,6 +30,10 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     var pin: Pin!
     
     var sharedContext = CoreDataStackManager.sharedInstance().managedObjectContext
+    
+    func saveContext() {
+        CoreDataStackManager.sharedInstance().saveContext()
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,8 +63,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         } else {
             print(pin.photos.count)
         }
-
-        
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -71,6 +73,10 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         mapView.addAnnotation(annotation)
     }
     
+    func centerMapOnLocation(coordinate: CLLocationCoordinate2D) {
+        let coordinateRegion = MKCoordinateRegionMakeWithDistance(coordinate, 8000, 8000)
+        mapView.setRegion(coordinateRegion, animated: true)
+    }
     
     func didDownloadImage(notification: NSNotification) {
         dispatch_async(dispatch_get_main_queue()) {
@@ -100,10 +106,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
         return self.fetchedResultsController.sections?.count ?? 0
-        print("section count: \(self.fetchedResultsController.sections?.count)")
     }
-    
-
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let sectionInfo = self.fetchedResultsController.sections![section]
@@ -127,17 +130,13 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCell
         
         // Whenever a cell is tapped we will toggle its presence in the selectedIndexes array
-        if let index = selectedIndexes.indexOf(indexPath) {
-            selectedIndexes.removeAtIndex(index)
-        } else {
-            selectedIndexes.append(indexPath)
-        }
-        
-        // Then reconfigure the cell
-        //configureCell(cell, atIndexPath: indexPath)
-        
-        // And update the buttom button
-        //updateBottomButton()
+
+        self.sharedContext.deleteObject(self.fetchedResultsController.objectAtIndexPath(indexPath) as! NSManagedObject)
+
+        collectionView.reloadData()
+        saveContext()
+        configureCell(cell, atIndexPath: indexPath)
+   
     }
     
     lazy var fetchedResultsController: NSFetchedResultsController = {
@@ -230,10 +229,12 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             
             for indexPath in self.insertedIndexPaths {
                 self.collectionView.insertItemsAtIndexPaths([indexPath])
+                print("dingle insert")
             }
             
             for indexPath in self.deletedIndexPaths {
                 self.collectionView.deleteItemsAtIndexPaths([indexPath])
+                print("dingle delete")
             }
             
             for indexPath in self.updatedIndexPaths {
@@ -242,16 +243,49 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             
             }, completion: nil)
     }
+
     
-    func centerMapOnLocation(coordinate: CLLocationCoordinate2D) {
-        let coordinateRegion = MKCoordinateRegionMakeWithDistance(coordinate, 8000, 8000)
-        mapView.setRegion(coordinateRegion, animated: true)
+    /* 
+    NEEDS FINISHED
+    */
+    
+//    func collectionView(collectionView: UICollectionView, didDeselectItemAtIndexPath indexPath: NSIndexPath) {
+//        sharedContext.deleteObject(pin.photos[indexPath.row])
+//        collectionView.reloadData()
+//    }
+ 
+    
+    @IBAction func newCollection() {
+      deletePhotos(pin.photos)
     }
     
-    
-    func saveContext() {
-        CoreDataStackManager.sharedInstance().saveContext()
+    func deletePhotos(photos:[Photo]) {
+        for photo in photos {
+            print("deleting image")
+            FlickrClient.Caches.imageCache.removeImage(photo.imagePath)
+            photo.isDownloading = true
+            FlickrClient.sharedInstance().searchPhotosNearPin(pin) { (imageData, success, errorString) in
+                if success {
+                    if let data = imageData {
+                        let image = UIImage(data: data)
+                        print(image!)
+                        photo.image = image!
+                        FlickrClient.Caches.imageCache.storeImage(image, withIdentifier: photo.imagePath)
+                        photo.isDownloading = false
+                        
+                        NSNotificationCenter.defaultCenter().postNotificationName("ImageLoadedNotification", object: self)
+                    }
+                    
+                    self.saveContext()
+                    
+                } else {
+                    print("nothing")
+                }
+            }
+
+        }
+        collectionView.reloadData()
     }
 
-
+    
 }
