@@ -86,10 +86,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
         return fetchedResultsController
         
     }()
-    
-    func controllerWillChangeContent(controller: NSFetchedResultsController) {
-        //LOADING INDICATOR
-    }
 
     func controller(controller: NSFetchedResultsController,
         didChangeObject anObject: AnyObject,
@@ -100,38 +96,16 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
             switch type {
             case .Insert:
                 print("insert")
-                fetchedResultsChangeInsert(anObject as! Pin)
                 print(fetchedPinsController.fetchedObjects?.count)
                 
             case .Delete:
-                fetchedResultsChangeDelete(anObject as! Pin)
                 print("delete")
-                
-            case .Update:
-                fetchedResultsChangeUpdate(anObject as! Pin)
-                print("update")
-                
+                print(fetchedPinsController.fetchedObjects?.count)
             default:
                 return
             }
     }
     
-    func fetchedResultsChangeInsert(pin: Pin) {
-     
-        print("Pin Inserted")
-        saveContext()
-    }
-    
-    func fetchedResultsChangeDelete(pin: Pin) {
-        print("Pin Deleted")
-        saveContext()
-    }
-    
-    func fetchedResultsChangeUpdate(pin: Pin) {
-        print("Pin Updated")
-        saveContext()
-    }
-
     func fetchPins(){
         do {
             try fetchedPinsController.performFetch()
@@ -150,7 +124,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
     
 
     /*
-        Add Annotation
+        Add an Annotation
     */
     func addAnnotation(gestureRecognizer:UIGestureRecognizer){
         
@@ -168,28 +142,45 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
                 self.mapView.addAnnotation(dragPin)
                 
             }else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
-                let touchPoint = gestureRecognizer.locationInView(mapView)
-                let coordinate = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
-                print(coordinate)
+                dispatch_async(dispatch_get_main_queue(), {
+                let pin = self.generatePin()
                 
-                let uuid = NSUUID().UUIDString
-
-                let dictionary: [String : AnyObject] = [
-                    "id": uuid,
-                    "latitude": newCoordinates.latitude,
-                    "longitude": newCoordinates.longitude
-                ]
-                let pin = Pin(dictionary: dictionary, context: sharedContext)
-                pin.title = "hey"
                 self.mapView.addAnnotation(pin)
-                self.mapView.removeAnnotation(dragPin)
-                dragPin = nil
-                for _ in 1...FlickrClient.PHOTO_LIMIT {
-                    FlickrClient.sharedInstance().downloadPhotoForPin(pin)
+                self.mapView.removeAnnotation(self.dragPin)
+                self.dragPin = nil
+                pin.generatePhotos()
+                  
+                Flickr.sharedInstance().getPhotosNearPin(pin) { (photosArray, success, error)  in
+                    for photo in pin.photos {
+                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+                          photo.downloadImage(photosArray)
+                        }
+                    }
                 }
+                    })
                 
             }
     }
+    
+    
+    
+    
+    /*
+        Generate a Pin
+    */
+    func generatePin() -> Pin {
+        let uuid = NSUUID().UUIDString
+        let dictionary: [String : AnyObject] = [
+            "id": uuid,
+            "latitude": dragPin.coordinate.latitude,
+            "longitude": dragPin.coordinate.longitude
+        ]
+        let pin = Pin(dictionary: dictionary, context: sharedContext)
+        pin.title = "placeholder"
+        //saveContext()
+        return pin
+    }
+    
     
     
     
@@ -210,10 +201,11 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
     }
     
     
+    
 
 
     /*
-        MapView Delegate Methods
+        Add an Annotation
     */
     func mapView(mapView: MKMapView,
         viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
@@ -224,6 +216,9 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
             }
             let reuseId = "pin"
             var annotationView = mapView.dequeueReusableAnnotationViewWithIdentifier(reuseId) as? MKPinAnnotationView
+            
+            //If annotation is a Pin give it a red color and disable animation
+            //Or if it's a temp annotation give it a purple color and allow animation with dragging
             if annotation is Pin{
                 annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
                 annotationView!.canShowCallout = false
@@ -240,26 +235,34 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
             return annotationView
     }
     
+    
+    
+    
+    /*
+        Did Select Annotation
+    */
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         mapView.deselectAnnotation(view.annotation, animated: false)
         if editMode{
             let pin = view.annotation as! Pin
             mapView.removeAnnotation(view.annotation!)
-            pin.deletePhotos(pin.photos)
+            pin.deletePhotos()
             sharedContext.deleteObject(pin)
-            saveContext()
         } else {
-            let vc = self.storyboard?.instantiateViewControllerWithIdentifier("PhotoAlbumViewController") as! PhotoAlbumViewController
+            let vc = storyboard?.instantiateViewControllerWithIdentifier("PhotoAlbumViewController") as! PhotoAlbumViewController
             let pin = view.annotation as! Pin
-            pin.updatePhotos(pin)
-            for photo in pin.photos {
-                print(photo.isDownloading)
-            }
             vc.pin = pin
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
     
+    
+    
+    
+   
+    /*
+        MapRegion Helpers
+    */
     func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         fetchMapRegionController() { (found, mapLocation) in
             if found {
@@ -268,12 +271,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
         }
     }
     
-    
-    
-   
-    /*
-        MapRegion Helpers
-    */
     func fetchMapRegionController(completionHandler:(found: Bool, mapLocation: MapLocation?) -> Void) {
         let mapLocationFetch = NSFetchRequest(entityName: "MapLocation")
         
@@ -294,15 +291,17 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
     func fetchMapRegion(){
         fetchMapRegionController() { (found, mapLocation) in
             if found {
+                //Update the map region in Core Data
                 self.setMapRegion(mapLocation!)
                 self.mapLocation = mapLocation
             }else {
-                self.creatMapRegin()
+                //Create initial map region in Core Data
+                self.createMapRegin()
             }
         }
     }
     
-    func creatMapRegin(){
+    func createMapRegin(){
         let region = self.mapView.region
         let dictionary = [
             "latitude": region.center.latitude,

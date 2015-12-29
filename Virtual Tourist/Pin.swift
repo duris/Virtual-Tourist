@@ -45,35 +45,60 @@ class Pin: NSManagedObject, MKAnnotation {
         longitude = dictionary["longitude"] as! Double
     }
     
-    func deletePhotos(photos:[Photo]) {
-        for photo in photos {
-            print("deleting photo")
-            FlickrClient.Caches.imageCache.removeImage(photo.imagePath)
+    func deletePhotos() {
+        for photo in self.photos {
+            Flickr.Caches.imageCache.removeImage(photo.imagePath)
             sharedContext.deleteObject(photo)
+        }
+        saveContext()
+    }
+  
+    
+    func clearCurrentImages(){
+        for photo in self.photos {
+            Flickr.Caches.imageCache.removeImage(photo.imagePath)
+            photo.isDownloading = true
+            photo.image = nil
         }
     }
     
-    func updatePhotos(pin: Pin) {
-        for photo in pin.photos {
-            if photo.image == nil && photo.isDownloading == false{
+    func checkForMissingPhotos(collectionView:UICollectionView){
+        if self.photos.count < Flickr.PHOTO_LIMIT {
+            for _ in 1...(Flickr.PHOTO_LIMIT - self.photos.count) {
+                let uuid = NSUUID().UUIDString
+                let dictionary: [String : AnyObject] = [
+                    "imagePath": "image_\(uuid)",
+                    "imageUrlString": ""
+                ]
+                let photo = Photo(dictionary: dictionary, context: self.sharedContext)
+                photo.pin = self
                 photo.isDownloading = true
-                FlickrClient.sharedInstance().searchPhotosNearPin(pin) { (imageData, success, errorString) in
-                    if success {
-                        if let data = imageData {
-                            let image = UIImage(data: data)
-                            print(image!)
-                            photo.image = image!
-                            FlickrClient.Caches.imageCache.storeImage(image, withIdentifier: photo.imagePath)
-                            photo.isDownloading = false
-                            
-                            NSNotificationCenter.defaultCenter().postNotificationName("ImageLoadedNotification", object: self)
-                        }
-                        
-                        self.saveContext()
-                        
-                    } else {
-                        print("nothing")
-                    }
+            }
+            self.saveContext()
+        }
+        collectionView.reloadData()
+    }
+    
+    
+    func generatePhotos(){
+        for _ in 1...Flickr.PHOTO_LIMIT {
+            let uuid = NSUUID().UUIDString
+            let dictionary: [String : AnyObject] = [
+                "imagePath": "image_\(uuid)",
+                "imageUrlString": ""
+            ]
+            let photo = Photo(dictionary: dictionary, context: self.sharedContext)
+            photo.pin = self
+            photo.isDownloading = true
+        }
+        saveContext()
+    }
+    
+    func reloadPhotos(photos:[Photo]) {
+        Flickr.sharedInstance().getPhotosNearPin(self) { (photosArray, success, error)  in
+            for photo in photos {
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+                    photo.downloadImage(photosArray)
                 }
             }
         }

@@ -14,6 +14,7 @@ class Photo : NSManagedObject {
 
     
     @NSManaged var imagePath: String
+    @NSManaged var imageUrlString: String
     @NSManaged var pin: Pin?
         
     var isDownloading = false
@@ -38,25 +39,48 @@ class Photo : NSManagedObject {
         
         // Dictionary
         imagePath = dictionary["imagePath"] as! String
+        imageUrlString = dictionary["imageUrlString"] as! String
     }
     
  
     func deleteImage(path: String){
-        FlickrClient.Caches.imageCache.removeImage(path)
+        Flickr.Caches.imageCache.removeImage(path)
     }
     
-    func downloadImage(pin: Pin) {
-        FlickrClient.sharedInstance().downloadPhotoForPin(pin)
+    func downloadImage(photosArray:[[String: AnyObject]]) {
+        self.isDownloading = true
+        let randomPhotoIndex = Int(arc4random_uniform(UInt32(photosArray.count)))
+        let photoDictionary = photosArray[randomPhotoIndex] as [String: AnyObject]
+        let imageUrlString = photoDictionary["url_m"] as? String
+        self.imageUrlString = imageUrlString!
+        if self.imageUrlString != "" {
+            if let imageURL = NSURL(string: self.imageUrlString) {
+                if let imageData = NSData(contentsOfURL: imageURL) {
+                    let image = UIImage(data: imageData)
+                    self.image = image!
+                    Flickr.Caches.imageCache.storeImage(image, withIdentifier: self.imagePath)
+                    self.isDownloading = false
+                    print("photo loaded")
+                    NSNotificationCenter.defaultCenter().postNotificationName("ImageLoadedNotification", object: self)
+                    
+                    self.saveContext()
+                }
+            } else {
+                print("no photo URL")
+            }
+        }
     }
+    
+    
     
     
     var image: UIImage? {
         get {
-            return FlickrClient.Caches.imageCache.imageWithIdentifier(imagePath)
+            return Flickr.Caches.imageCache.imageWithIdentifier(imagePath)
         }
         
         set {
-            FlickrClient.Caches.imageCache.storeImage(image, withIdentifier: imagePath)
+            Flickr.Caches.imageCache.storeImage(image, withIdentifier: imagePath)
         }
     }
 }
