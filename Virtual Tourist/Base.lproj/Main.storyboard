@@ -157,6 +157,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="rSQ-4H-Dv9"/>
                     <connections>
+                        <outlet property="bottomButton" destination="Skp-Yx-hed" id="sC6-mK-6pS"/>
                         <outlet property="collectionView" destination="Oeg-ww-O0a" id="E0b-rS-dKa"/>
                         <outlet property="mapView" destination="1PC-cq-Lqh" id="0nJ-ad-Wig"/>
                     </connections>

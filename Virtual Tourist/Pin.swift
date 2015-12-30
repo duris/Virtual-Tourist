@@ -97,9 +97,9 @@ class Pin: NSManagedObject, MKAnnotation {
     func reloadPhotos(photos:[Photo]) {
         Flickr.sharedInstance().getPhotosNearPin(self) { (photosArray, success, error)  in
             for photo in photos {
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+                dispatch_async(dispatch_get_main_queue(), {
                     photo.downloadImage(photosArray)
-                }
+                })
             }
         }
     }

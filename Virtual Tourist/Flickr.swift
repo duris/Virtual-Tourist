@@ -131,17 +131,7 @@ class Flickr : NSObject {
         
         return "\(bottom_left_lon),\(bottom_left_lat),\(top_right_lon),\(top_right_lat)"
     }
-    
-    
-    
-    var sharedContext: NSManagedObjectContext {
-        return CoreDataStackManager.sharedInstance().managedObjectContext
-    }
-    
-    func saveContext() {
-        CoreDataStackManager.sharedInstance().saveContext()
-    }
-    
+
 
     
     /* Helper function: Given a dictionary of parameters, convert to a string for a url */

@@ -90,11 +90,11 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     Image Loaded Notification
     */
     func didLoadImage(notification: NSNotification) {
-        dispatch_async(dispatch_get_main_queue()) { () -> Void in
+        dispatch_async(dispatch_get_main_queue(), {
         print("ImageLoadedNotification")
 
             self.collectionView.reloadData()
-        }
+        })
 
     }
 
@@ -116,6 +116,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             cell.activityIndicator.stopAnimating()
             cell.photoView.image = photo.image
         } else if photo.image == nil && !photo.isDownloading{
+            photo.isDownloading = true
             var photosToUpdate = [Photo]()
             photosToUpdate.append(photo)
             reloadPhotos(photosToUpdate)
@@ -152,11 +153,12 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCell
         // Whenever a cell is tapped we will toggle its presence in the selectedIndexes array
-        
-        self.sharedContext.deleteObject(self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo)
-        configureCell(cell, atIndexPath: indexPath)
-        saveContext()
+        dispatch_async(dispatch_get_main_queue(), {
+
+            self.sharedContext.deleteObject(self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo)
+            self.saveContext()
         collectionView.reloadData()
+        })
     }
     
 
@@ -285,7 +287,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     
     @IBAction func newCollection() {
-        
         //Clear current image for each photo
         pin.clearCurrentImages()
         
@@ -300,19 +301,20 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     
     func reloadPhotos(photos:[Photo]) {
-
+        bottomButton.enabled = false
         Flickr.sharedInstance().getPhotosNearPin(pin) { (photosArray, success, error)  in
             if success{
                 for photo in photos {
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+                    dispatch_async(dispatch_get_main_queue(), {
                         photo.downloadImage(photosArray)
-                    }
+                    })
                 }
             } else {
                 print("\(error)")
             }
 
         }
+        bottomButton.enabled = true
     }
 
     

@@ -42,6 +42,11 @@ class Photo : NSManagedObject {
         imageUrlString = dictionary["imageUrlString"] as! String
     }
     
+    override func prepareForDeletion() {
+        //Delete underlying image file automatically
+        deleteImage(self.imagePath)
+    }
+    
  
     func deleteImage(path: String){
         Flickr.Caches.imageCache.removeImage(path)
