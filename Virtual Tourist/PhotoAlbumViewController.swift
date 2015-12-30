@@ -305,9 +305,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         Flickr.sharedInstance().getPhotosNearPin(pin) { (photosArray, success, error)  in
             if success{
                 for photo in photos {
-                    dispatch_async(dispatch_get_main_queue(), {
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
                         photo.downloadImage(photosArray)
-                    })
+                    }
                 }
             } else {
                 print("\(error)")

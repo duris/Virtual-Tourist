@@ -141,8 +141,8 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
                 
                 self.mapView.addAnnotation(dragPin)
                 
-            } else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
-                dispatch_async(dispatch_get_main_queue(), {
+            }else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
+
                 let pin = self.generatePin()
                 
                 self.mapView.addAnnotation(pin)
@@ -152,13 +152,14 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
                   
                 Flickr.sharedInstance().getPhotosNearPin(pin) { (photosArray, success, error)  in
                     for photo in pin.photos {
-                        dispatch_async(dispatch_get_main_queue(), {
+                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
                           photo.downloadImage(photosArray)
-                        })
+                        }
                     }
                 }
-            })
-        }
+                    
+                
+            }
     }
     
     
@@ -204,7 +205,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
 
 
     /*
-        Add an Annotation View
+        Add an Annotation
     */
     func mapView(mapView: MKMapView,
         viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {

@@ -67,8 +67,9 @@ class Photo : NSManagedObject {
                     self.isDownloading = false
                     print("photo loaded")
                     NSNotificationCenter.defaultCenter().postNotificationName("ImageLoadedNotification", object: self)
-                    
+                    dispatch_async(dispatch_get_main_queue(), {
                     self.saveContext()
+                    })
                 }
             } else {
                 print("no photo URL")
