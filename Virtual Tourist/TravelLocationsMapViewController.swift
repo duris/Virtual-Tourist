@@ -23,9 +23,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
         static let imageCache = ImageCache()
     }
     
-    
-    
-    
+            
     /*
         Life Cycle
     */
