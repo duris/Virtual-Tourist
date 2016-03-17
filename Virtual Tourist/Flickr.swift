@@ -81,7 +81,7 @@ class Flickr : NSObject {
             if let error = downloadError {
                 print("Could not complete the request \(error)")
             } else {
-                let parsingError: NSError? = nil
+                //let parsingError: NSError? = nil
                 let parsedResult = (try! NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments)) as! NSDictionary
                 
                 if let photosDictionary = parsedResult.valueForKey("photos") as? [String:AnyObject] {
